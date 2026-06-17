@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Briefing — Página de Vendas — Noemi Fonseca</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #000000;
+    --dark: #0A0A0A;
+    --gold: #C4956A;
+    --gold-light: #E0B888;
+    --white: #FDFAF7;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--black);
+    color: var(--white);
+    overflow: hidden;
+  }
+
+  /* PROGRESS BAR */
+  .progress-bar {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(to right, var(--gold), var(--gold-light));
+    width: 0%;
+    transition: width 0.4s ease;
+    z-index: 100;
+  }
+
+  .progress-count {
+    position: fixed;
+    top: 20px; right: 24px;
+    font-size: 11px;
+    color: rgba(253,250,247,0.35);
+    letter-spacing: 1px;
+    z-index: 100;
+  }
+
+  /* STAGE — holds all screens */
+  .stage {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+
+  /* SCREEN — one per question */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 28px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(24px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+  }
+
+  .screen.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .screen-inner {
+    width: 100%;
+    max-width: 620px;
+  }
+
+  /* INTRO SCREEN */
+  .screen-intro .hero-tag {
+    font-size: 9px; font-weight: 500; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 28px; text-align: center;
+  }
+  .screen-intro h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(34px, 7vw, 58px);
+    font-weight: 300; line-height: 1.1; color: var(--white); text-align: center;
+  }
+  .screen-intro h1 em { font-style: italic; color: var(--gold-light); display: block; }
+  .screen-intro .hero-sub {
+    font-size: 13px; font-weight: 300; color: rgba(253,250,247,0.4);
+    text-align: center; margin-top: 20px; margin-bottom: 8px;
+  }
+
+  /* SECTION TAG (within question screens) */
+  .q-section {
+    font-size: 9px; font-weight: 500; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 18px; text-align: center;
+  }
+
+  .q-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(22px, 4vw, 30px);
+    font-weight: 300; line-height: 1.35; color: var(--white);
+    text-align: center; margin-bottom: 32px;
+  }
+
+  .q-textarea {
+    width: 100%;
+    background: rgba(253,250,247,0.04);
+    border: 1px solid rgba(196,149,106,0.25);
+    border-radius: 6px;
+    padding: 18px 20px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 300;
+    color: var(--white);
+    outline: none;
+    resize: none;
+    min-height: 130px;
+    transition: border-color 0.3s ease;
+    line-height: 1.6;
+  }
+
+  .q-textarea:focus { border-color: var(--gold); }
+  ::placeholder { color: rgba(253,250,247,0.2); }
+
+  /* NAV BUTTONS */
+  .nav-row {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 32px;
+  }
+
+  .btn {
+    padding: 14px 40px;
+    border-radius: 50px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: none;
+    transition: all 0.25s ease;
+  }
+
+  .btn-primary {
+    background: var(--gold);
+    color: var(--black);
+  }
+  .btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  .btn-secondary {
+    background: transparent;
+    color: rgba(253,250,247,0.4);
+    border: 1px solid rgba(253,250,247,0.15);
+  }
+  .btn-secondary:hover { color: var(--white); border-color: rgba(253,250,247,0.35); }
+
+  .hint {
+    text-align: center;
+    font-size: 10px;
+    color: rgba(253,250,247,0.2);
+    margin-top: 18px;
+    letter-spacing: 0.5px;
+  }
+
+  /* SUBMIT SCREEN */
+  .screen-final .check {
+    font-size: 40px;
+    color: var(--gold);
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .screen-final h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+  .screen-final p {
+    font-size: 13px;
+    color: rgba(253,250,247,0.45);
+    text-align: center;
+    line-height: 1.7;
+  }
+
+  .loading {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(253,250,247,0.3);
+    margin-top: 20px;
+  }
+
+  @media (max-width: 480px) {
+    .btn { padding: 13px 28px; font-size: 10px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+<div class="progress-count" id="progressCount"></div>
+
+<form id="briefingForm" action="https://formspree.io/f/xykaawoa" method="POST">
+<input type="hidden" name="_subject" value="Novo briefing recebido - Noemi Fonseca">
+
+<div class="stage" id="stage">
+
+  <!-- SCREEN 0: INTRO -->
+  <div class="screen screen-intro active" data-index="0">
+    <div class="screen-inner">
+      <p class="hero-tag">Briefing · Página de Vendas</p>
+      <h1>Anestesia Labial<em>de Precisão</em></h1>
+      <p class="hero-sub" style="text-align:center;">Noemi Fonseca · Protocolo Ampola Única</p>
+      <div class="nav-row">
+        <button class="btn btn-primary" onclick="goTo(1)">Começar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 1 -->
+  <div class="screen" data-index="1">
+    <div class="screen-inner">
+      <p class="q-section">01 · Dor e contexto</p>
+      <p class="q-title">Descreva 2 ou 3 situações reais de pacientes que sentiram dor mesmo com anestesia tradicional. O que aconteceu, quantas ampolas foram usadas, como ela reagiu na hora.</p>
+      <textarea class="q-textarea" name="01_situacoes_de_dor" data-field="q1" placeholder="Pode ser bem detalhado, quanto mais real melhor..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(0)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(2)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 2 -->
+  <div class="screen" data-index="2">
+    <div class="screen-inner">
+      <p class="q-section">01 · Dor e contexto</p>
+      <p class="q-title">O que costuma acontecer depois que uma paciente sente dor durante o procedimento?</p>
+      <textarea class="q-textarea" name="02_o_que_acontece_depois" data-field="q2" placeholder="Ex: ela fica receosa de voltar, comenta com outras pessoas, evita indicar..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(1)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(3)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 3 -->
+  <div class="screen" data-index="3">
+    <div class="screen-inner">
+      <p class="q-section">01 · Dor e contexto</p>
+      <p class="q-title">Por que você acredita que a maioria das profissionais ainda usa de 3 a 5 ampolas, mesmo sem ser o ideal?</p>
+      <textarea class="q-textarea" name="03_porque_3_a_5_ampolas" data-field="q3" placeholder="Sua visão sobre isso, mesmo que seja uma opinião..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(2)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(4)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 4 -->
+  <div class="screen" data-index="4">
+    <div class="screen-inner">
+      <p class="q-section">02 · A descoberta</p>
+      <p class="q-title">Como você chegou nessa técnica de 1 ampola? Foi tentativa e erro, alguém te ensinou, ou você desenvolveu sozinha?</p>
+      <textarea class="q-textarea" name="04_como_descobriu_metodo" data-field="q4" placeholder="Conte a história, mesmo que pareça simples..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(3)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(5)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 5 -->
+  <div class="screen" data-index="5">
+    <div class="screen-inner">
+      <p class="q-section">02 · A descoberta</p>
+      <p class="q-title">Quanto tempo levou até você dominar completamente essa técnica com segurança?</p>
+      <textarea class="q-textarea" name="05_tempo_para_dominar" data-field="q5" placeholder="Pode ser uma estimativa..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(4)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(6)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 6 -->
+  <div class="screen" data-index="6">
+    <div class="screen-inner">
+      <p class="q-section">03 · Prova e resultado</p>
+      <p class="q-title">Quantas pacientes você já atendeu usando esse protocolo?</p>
+      <textarea class="q-textarea" name="06_quantas_pacientes" data-field="q6" placeholder="Pode ser um número aproximado..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(5)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(7)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 7 -->
+  <div class="screen" data-index="7">
+    <div class="screen-inner">
+      <p class="q-section">03 · Prova e resultado</p>
+      <p class="q-title">Que resultados você percebe na prática com essa técnica? Pode ser economia de anestésico, redução de tempo de procedimento, satisfação das pacientes.</p>
+      <textarea class="q-textarea" name="07_resultados_na_pratica" data-field="q7" placeholder="Conte o que você observa no dia a dia..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(6)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(8)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 8 -->
+  <div class="screen" data-index="8">
+    <div class="screen-inner">
+      <p class="q-section">03 · Prova e resultado</p>
+      <p class="q-title">Já ensinou essa técnica informalmente para alguém? O que ela achou ao aplicar e ver o resultado?</p>
+      <textarea class="q-textarea" name="08_ja_ensinou_alguem" data-field="q8" placeholder="Se sim, conte como foi essa experiência..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(7)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(9)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 9 -->
+  <div class="screen" data-index="9">
+    <div class="screen-inner">
+      <p class="q-section">04 · O que o mercado não sabe</p>
+      <p class="q-title">Quando você conta esse método para colegas, qual costuma ser a primeira reação?</p>
+      <textarea class="q-textarea" name="09_reacao_de_colegas" data-field="q9" placeholder="Ex: surpresa, curiosidade, desconfiança..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(8)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(10)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 10 -->
+  <div class="screen" data-index="10">
+    <div class="screen-inner">
+      <p class="q-section">04 · O que o mercado não sabe</p>
+      <p class="q-title">Existe algum mito comum no mercado sobre anestesia labial que esse curso esclarece?</p>
+      <textarea class="q-textarea" name="10_mito_comum" data-field="q10" placeholder="Algo que as profissionais geralmente acreditam e não é bem assim..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(9)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(11)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 11 -->
+  <div class="screen" data-index="11">
+    <div class="screen-inner">
+      <p class="q-section">05 · Estrutura da oferta</p>
+      <p class="q-title">O que exatamente está incluso no curso? Quantas aulas, formato, tempo de acesso, suporte.</p>
+      <textarea class="q-textarea" name="11_estrutura_curso" data-field="q11" placeholder="Descreva o que já está definido até agora..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(10)">Voltar</button>
+        <button class="btn btn-primary" onclick="goTo(12)">Continuar</button>
+      </div>
+      <p class="hint">Pressione Enter para avançar</p>
+    </div>
+  </div>
+
+  <!-- SCREEN 12 -->
+  <div class="screen" data-index="12">
+    <div class="screen-inner">
+      <p class="q-section">05 · Estrutura da oferta</p>
+      <p class="q-title">Existe algo que você possa oferecer como bônus para agregar valor à página de vendas? Pode ser um material extra, um grupo de apoio, uma vantagem qualquer.</p>
+      <textarea class="q-textarea" name="12_bonus_possivel" data-field="q12" placeholder="Pode ser uma ideia inicial, sem compromisso ainda..."></textarea>
+      <div class="nav-row">
+        <button class="btn btn-secondary" onclick="goTo(11)">Voltar</button>
+        <button type="submit" class="btn btn-primary">Enviar respostas</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL SCREEN -->
+  <div class="screen screen-final" data-index="13">
+    <div class="screen-inner">
+      <p class="check">✦</p>
+      <h2>Obrigada, Noemi.</h2>
+      <p id="finalMsg">Recebi suas respostas. Já tenho o que preciso para escrever a página.</p>
+    </div>
+  </div>
+
+</div>
+</form>
+
+<script>
+  const totalQuestions = 12; // q1 to q12
+  let currentIndex = 0;
+
+  function goTo(index) {
+    const screens = document.querySelectorAll('.screen');
+    screens.forEach(s => s.classList.remove('active'));
+    const target = document.querySelector(`.screen[data-index="${index}"]`);
+    if (target) target.classList.add('active');
+    currentIndex = index;
+    updateProgress();
+    const textarea = target ? target.querySelector('textarea') : null;
+    if (textarea) setTimeout(() => textarea.focus(), 400);
+  }
+
+  function updateProgress() {
+    const progressBar = document.getElementById('progressBar');
+    const progressCount = document.getElementById('progressCount');
+    if (currentIndex === 0 || currentIndex === 13) {
+      progressBar.style.width = currentIndex === 13 ? '100%' : '0%';
+      progressCount.textContent = '';
+    } else {
+      const pct = (currentIndex / totalQuestions) * 100;
+      progressBar.style.width = pct + '%';
+      progressCount.textContent = currentIndex + ' / ' + totalQuestions;
+    }
+  }
+
+  // Enter key advances (Shift+Enter for new line)
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey && document.activeElement.tagName === 'TEXTAREA') {
+      e.preventDefault();
+      if (currentIndex < totalQuestions) {
+        goTo(currentIndex + 1);
+      } else if (currentIndex === totalQuestions) {
+        document.getElementById('briefingForm').requestSubmit();
+      }
+    }
+  });
+
+  // Intercept real form submit, send via fetch, show success screen without leaving the page
+  document.getElementById('briefingForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch(form.action, {
+      method: 'POST',
+      headers: { 'Accept': 'application/json' },
+      body: formData
+    }).then(response => {
+      if (response.ok) {
+        goTo(13);
+      } else {
+        console.error('Formspree retornou status', response.status);
+        document.getElementById('finalMsg').textContent = 'Suas respostas foram preenchidas, mas houve um problema no envio. Por favor avise a Jéssica diretamente.';
+        goTo(13);
+      }
+    }).catch(err => {
+      console.error('Erro de rede ao enviar:', err);
+      document.getElementById('finalMsg').textContent = 'Suas respostas foram preenchidas, mas houve um problema no envio. Por favor avise a Jéssica diretamente.';
+      goTo(13);
+    });
+  });
+</script>
+</body>
+</html>
